@@ -58,7 +58,6 @@ class Chef
         :@force_default
       ]
 
-
       OVERRIDE_COMPONENTS = [
         :@override,
         :@role_override,
@@ -145,7 +144,6 @@ class Chef
             end
          METHOD_DEFN
        end
-
 
        # return the cookbook level default attribute component
        attr_reader :default
@@ -311,6 +309,92 @@ class Chef
          @automatic = VividMash.new(self, new_data)
        end
 
+       # Deleting attributes
+       def rm(*args)
+         ret = args.inject(merged_attributes) { |attr, arg| attr.nil? ? nil : attr[arg] }
+         rm_default(*args)
+         rm_normal(*args)
+         rm_override(*args)
+         ret
+       end
+
+       def rm_default(*args)
+         ret = args.inject(merge_defaults) { |attr, arg| attr.nil? ? nil : attr[arg] }
+         delete_thing(@default, *args)
+         delete_thing(@env_default, *args)
+         delete_thing(@role_default, *args)
+         delete_thing(@force_default, *args)
+         reset
+         ret
+       end
+
+       def delete_thing(thing, *args)
+         key = args.pop
+         mash = args.inject(thing) { |attr, arg| attr.nil? ? nil : attr[arg] }
+         mash.nil? ? nil : mash.delete(key)
+       end
+
+       def rm_normal(*args)
+         ret = delete_thing(@normal, *args)
+         reset
+         ret
+       end
+
+       def rm_override(*args)
+         ret = args.inject(merge_overrides) { |attr, arg| attr.nil? ? nil : attr[arg] }
+         delete_thing(@override, *args)
+         delete_thing(@env_override, *args)
+         delete_thing(@role_override, *args)
+         delete_thing(@force_override, *args)
+         reset
+         ret
+       end
+
+       class MultiMash
+         attr_reader :mashes
+
+         def initialize(*mashes)
+           @mashes = mashes
+         end
+
+         def [](key)
+           new_mashes = []
+           mashes.each do |mash|
+             new_mashes.push(mash[key]) if mash.has_key?(key)
+           end
+           MultiMash.new(*new_mashes)
+         end
+
+         def []=(key, value)
+           mashes.each do |mash|
+             mash.delete(key)
+           end
+           mashes[0][key] = value
+           # FIXME: retval
+         end
+       end
+
+       # Replacing attributes
+       def replace_default
+         @default
+       end
+
+       def replace_normal
+         @normal
+       end
+
+       def replace_override
+         @override
+       end
+
+       def replace_force_default
+         MultiMash.new(@force_default, @default, @env_default, @role_default)
+       end
+
+       def replace_force_override
+         MultiMash.new(@force_override, @override, @env_override, @role_override)
+       end
+
        def merged_attributes
          @merged_attributes ||= begin
                                   components = [merge_defaults, @normal, merge_overrides, @automatic]
@@ -390,7 +474,6 @@ class Chef
            Chef::Mixin::DeepMerge.merge(merged, component_value)
          end
        end
-
 
     end
 

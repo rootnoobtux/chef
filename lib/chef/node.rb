@@ -213,6 +213,44 @@ class Chef
       attributes.automatic = new_values
     end
 
+    # Removing attributes
+    def rm(*args)
+      attributes.rm(*args)
+    end
+
+    def rm_default(*args)
+      attributes.rm_default(*args)
+    end
+
+    def rm_normal(*args)
+      attributes.rm_normal(*args)
+    end
+
+    def rm_override(*args)
+      attributes.rm_override(*args)
+    end
+
+    # Replacing attributes
+    def replace_default
+      attributes.replace_default
+    end
+
+    def replace_normal
+      attributes.replace_normal
+    end
+
+    def replace_override
+      attributes.replace_override
+    end
+
+    def replace_force_default
+      attributes.replace_force_default
+    end
+
+    def replace_force_override
+      attributes.replace_force_override
+    end
+
     # Return true if this Node has a given attribute, false if not.  Takes either a symbol or
     # a string.
     #
