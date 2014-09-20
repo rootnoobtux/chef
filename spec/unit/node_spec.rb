@@ -458,7 +458,7 @@ context "chef-12 attribute changes DELETEME" do
       it "removes everything at the level of the last key" do
         node.force_default["mysql"]["server"]["port"] = 2345
 
-        node.replace_force_default["mysql"]["server"] = {
+        node.replace_force_default!["mysql"]["server"] = {
           "data_dir" => "/my_raid_volume/lib/mysql",
         }
 
@@ -472,7 +472,7 @@ context "chef-12 attribute changes DELETEME" do
         node.default["mysql"]["server"]["port"] = 2345
         node.force_default["mysql"]["server"]["port"] = 3456
 
-        node.replace_force_default["mysql"]["server"] = {
+        node.replace_force_default!["mysql"]["server"] = {
           "data_dir" => "/my_raid_volume/lib/mysql",
         }
 
@@ -489,7 +489,7 @@ context "chef-12 attribute changes DELETEME" do
         node.force_default["mysql"]["server"]["port"] = 3456
         node.override["mysql"]["server"]["service_name"] = "fancypants-sql"
 
-        node.replace_force_default["mysql"]["server"] = {
+        node.replace_force_default!["mysql"]["server"] = {
           "data_dir" => "/my_raid_volume/lib/mysql",
         }
 
@@ -507,7 +507,7 @@ context "chef-12 attribute changes DELETEME" do
         node.force_override["mysql"]["server"]["port"] = 3456
         node.default["mysql"]["server"]["service_name"] = "fancypants-sql"
 
-        node.replace_force_override["mysql"]["server"] = {
+        node.replace_force_override!["mysql"]["server"] = {
           "data_dir" => "/my_raid_volume/lib/mysql",
         }
 

@@ -388,10 +388,28 @@ class Chef
        end
 
        def replace_force_default
-         MultiMash.new(@force_default, @default, @env_default, @role_default)
+         @force_default
        end
 
        def replace_force_override
+         @force_override
+       end
+
+       def replace_default!
+         MultiMash.new(@default, @force_default, @env_default, @role_default)
+       end
+
+       # replace_normal! has no other levels to remove, so just use replace_normal
+
+       def replace_override!
+         MultiMash.new(@override, @force_override, @env_override, @role_override)
+       end
+
+       def replace_force_default!
+         MultiMash.new(@force_default, @default, @env_default, @role_default)
+       end
+
+       def replace_force_override!
          MultiMash.new(@force_override, @override, @env_override, @role_override)
        end
 

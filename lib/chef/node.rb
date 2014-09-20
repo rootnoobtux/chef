@@ -251,6 +251,24 @@ class Chef
       attributes.replace_force_override
     end
 
+    def replace_default!
+      attributes.replace_default!
+    end
+
+    # replace_normal! has no other levels to remove, so just use replace_normal
+
+    def replace_override!
+      attributes.replace_override!
+    end
+
+    def replace_force_default!
+      attributes.replace_force_default!
+    end
+
+    def replace_force_override!
+      attributes.replace_force_override!
+    end
+
     # Return true if this Node has a given attribute, false if not.  Takes either a symbol or
     # a string.
     #
