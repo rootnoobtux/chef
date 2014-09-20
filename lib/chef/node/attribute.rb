@@ -157,11 +157,6 @@ class Chef
        # return the force_default level attribute component
        attr_reader :force_default
 
-       # default! is the "advertised" method for force_default, but is
-       # implemented as an alias because instance variables can't (easily) have
-       # +!+ characters.
-       alias :default! :force_default
-
        # return the "normal" level attribute component
        attr_reader :normal
 
@@ -176,11 +171,6 @@ class Chef
 
        # return the force override level attribute component
        attr_reader :force_override
-
-       # +override!+ is the "advertised" method for +force_override+ but is
-       # implemented as an alias because instance variables can't easily have
-       # +!+ characters.
-       alias :override! :force_override
 
        # return the automatic level attribute component
        attr_reader :automatic
@@ -375,41 +365,39 @@ class Chef
        end
 
        # Replacing attributes
-       def replace_default
+       def default!
          @default
        end
 
-       def replace_normal
+       def normal!
          @normal
        end
 
-       def replace_override
+       def override!
          @override
        end
 
-       def replace_force_default
-         @force_default
-       end
+#       def force_default!
+#         @force_default
+#       end
+#
+#       def force_override!
+#         @force_override
+#       end
+#
+#       def really_default!
+#         MultiMash.new(@default, @force_default, @env_default, @role_default)
+#       end
+#
+#       def really_override!
+#         MultiMash.new(@override, @force_override, @env_override, @role_override)
+#       end
 
-       def replace_force_override
-         @force_override
-       end
-
-       def replace_default!
-         MultiMash.new(@default, @force_default, @env_default, @role_default)
-       end
-
-       # replace_normal! has no other levels to remove, so just use replace_normal
-
-       def replace_override!
-         MultiMash.new(@override, @force_override, @env_override, @role_override)
-       end
-
-       def replace_force_default!
+       def force_default!
          MultiMash.new(@force_default, @default, @env_default, @role_default)
        end
 
-       def replace_force_override!
+       def force_override!
          MultiMash.new(@force_override, @override, @env_override, @role_override)
        end
 

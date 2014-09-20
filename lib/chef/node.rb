@@ -146,13 +146,6 @@ class Chef
       attributes.default
     end
 
-    # Set a force default attribute. Intermediate mashes will be created by
-    # auto-vivify if necessary.
-    def default!
-      attributes.set_unless_value_present = false
-      attributes.default!
-    end
-
     # Set a default attribute of this node, auto-vivifying any mashes that are
     # missing, but if the final value already exists, don't set it
     def default_unless
@@ -165,13 +158,6 @@ class Chef
     def override
       attributes.set_unless_value_present = false
       attributes.override
-    end
-
-    # Set a force override attribute. Intermediate mashes will be created by
-    # auto-vivify if needed.
-    def override!
-      attributes.set_unless_value_present = false
-      attributes.override!
     end
 
     # Set an override attribute of this node, auto-vivifying any mashes that
@@ -231,42 +217,40 @@ class Chef
     end
 
     # Replacing attributes
-    def replace_default
-      attributes.replace_default
+    def default!
+      attributes.default!
     end
 
-    def replace_normal
-      attributes.replace_normal
+    def normal!
+      attributes.normal!
     end
 
-    def replace_override
-      attributes.replace_override
+    def override!
+      attributes.override!
     end
 
-    def replace_force_default
-      attributes.replace_force_default
+#    def force_default!
+#      attributes.replace_force_default
+#    end
+#
+#    def force_override!
+#      attributes.force_override
+#    end
+#
+#    def really_default!
+#      attributes.really_default!
+#    end
+#
+#    def really_override!
+#      attributes.really_override!
+#    end
+
+    def force_default!
+      attributes.force_default!
     end
 
-    def replace_force_override
-      attributes.replace_force_override
-    end
-
-    def replace_default!
-      attributes.replace_default!
-    end
-
-    # replace_normal! has no other levels to remove, so just use replace_normal
-
-    def replace_override!
-      attributes.replace_override!
-    end
-
-    def replace_force_default!
-      attributes.replace_force_default!
-    end
-
-    def replace_force_override!
-      attributes.replace_force_override!
+    def force_override!
+      attributes.force_override!
     end
 
     # Return true if this Node has a given attribute, false if not.  Takes either a symbol or

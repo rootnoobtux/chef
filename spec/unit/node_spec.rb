@@ -421,7 +421,7 @@ context "chef-12 attribute changes DELETEME" do
       it "removes everything at the level of the last key" do
         node.default["mysql"]["server"]["port"] = 2345
 
-        node.replace_default["mysql"]["server"] = { "data_dir" => "/my_raid_volume/lib/mysql" }
+        node.default!["mysql"]["server"] = { "data_dir" => "/my_raid_volume/lib/mysql" }
 
         expect( node["mysql"]["server"] ).to eql({ "data_dir" => "/my_raid_volume/lib/mysql" })
       end
@@ -432,7 +432,7 @@ context "chef-12 attribute changes DELETEME" do
         node.role_default["mysql"]["server"]["port"] = 1234
         node.force_default["mysql"]["server"]["port"] = 3456
 
-        node.replace_default["mysql"]["server"] = { "data_dir" => "/my_raid_volume/lib/mysql" }
+        node.default!["mysql"]["server"] = { "data_dir" => "/my_raid_volume/lib/mysql" }
 
         expect( node["mysql"]["server"]["port"] ).to eql(3456)
         expect( node["mysql"]["server"]["service_name"] ).to be_nil
@@ -446,7 +446,7 @@ context "chef-12 attribute changes DELETEME" do
         node.force_default["mysql"]["server"]["port"] = 3456
         node.override["mysql"]["server"]["service_name"] = "fancypants-sql"
 
-        node.replace_default["mysql"]["server"] = { "data_dir" => "/my_raid_volume/lib/mysql" }
+        node.default!["mysql"]["server"] = { "data_dir" => "/my_raid_volume/lib/mysql" }
 
         expect( node["mysql"]["server"]["port"] ).to eql(3456)
         expect( node["mysql"]["server"]["data_dir"] ).to eql("/my_raid_volume/lib/mysql")
@@ -458,7 +458,7 @@ context "chef-12 attribute changes DELETEME" do
       it "removes everything at the level of the last key" do
         node.force_default["mysql"]["server"]["port"] = 2345
 
-        node.replace_force_default!["mysql"]["server"] = {
+        node.force_default!["mysql"]["server"] = {
           "data_dir" => "/my_raid_volume/lib/mysql",
         }
 
@@ -472,7 +472,7 @@ context "chef-12 attribute changes DELETEME" do
         node.default["mysql"]["server"]["port"] = 2345
         node.force_default["mysql"]["server"]["port"] = 3456
 
-        node.replace_force_default!["mysql"]["server"] = {
+        node.force_default!["mysql"]["server"] = {
           "data_dir" => "/my_raid_volume/lib/mysql",
         }
 
@@ -489,7 +489,7 @@ context "chef-12 attribute changes DELETEME" do
         node.force_default["mysql"]["server"]["port"] = 3456
         node.override["mysql"]["server"]["service_name"] = "fancypants-sql"
 
-        node.replace_force_default!["mysql"]["server"] = {
+        node.force_default!["mysql"]["server"] = {
           "data_dir" => "/my_raid_volume/lib/mysql",
         }
 
@@ -507,7 +507,7 @@ context "chef-12 attribute changes DELETEME" do
         node.force_override["mysql"]["server"]["port"] = 3456
         node.default["mysql"]["server"]["service_name"] = "fancypants-sql"
 
-        node.replace_force_override!["mysql"]["server"] = {
+        node.force_override!["mysql"]["server"] = {
           "data_dir" => "/my_raid_volume/lib/mysql",
         }
 
