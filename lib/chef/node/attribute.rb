@@ -314,6 +314,8 @@ class Chef
          multimash.nil? ? nil : multimash.delete(key)
        end
 
+       private :remove_from_precedence_level
+
        # force_default!['foo']['bar'].delete('baz')
        def rm_default(*args)
          remove_from_precedence_level(force_default!, *args)
