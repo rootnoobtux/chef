@@ -382,7 +382,8 @@ class Chef::Application::Client < Chef::Application
   end
 
   def unforked_interval_error_message
-    "Unable to execute unforked chef-client interval runs. Configuration settings:" +
+    "Unforked chef-client interval runs are disabled in Chef 12." +
+    "\nConfiguration settings:" +
     "#{"\n  daemonize = #{Chef::Config[:daemonize]}" if Chef::Platform.windows?}" +
     "#{"\n  interval  = #{Chef::Config[:interval]} seconds" if Chef::Config[:interval]}" +
     "#{"\n  splay     = #{Chef::Config[:splay]} seconds" if Chef::Config[:splay]}" +

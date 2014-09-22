@@ -55,7 +55,8 @@ describe Chef::Application::Client, "reconfigure" do
 
       it "should terminate with message" do
         Chef::Application.should_receive(:fatal!).with(
-"Unable to execute unforked chef-client interval runs. Configuration settings:
+"Unforked chef-client interval runs are disabled in Chef 12.
+Configuration settings:
   daemonize = true
 Enable chef-client interval runs by setting `:client_fork = true` in your config file or adding `--fork` to your command line options."
         )
@@ -70,7 +71,8 @@ Enable chef-client interval runs by setting `:client_fork = true` in your config
 
       it "should terminate with message" do
         Chef::Application.should_receive(:fatal!).with(
-"Unable to execute unforked chef-client interval runs. Configuration settings:
+"Unforked chef-client interval runs are disabled in Chef 12.
+Configuration settings:
   interval  = 600 seconds
 Enable chef-client interval runs by setting `:client_fork = true` in your config file or adding `--fork` to your command line options."
         )
@@ -85,7 +87,8 @@ Enable chef-client interval runs by setting `:client_fork = true` in your config
 
       it "should terminate with message" do
         Chef::Application.should_receive(:fatal!).with(
-"Unable to execute unforked chef-client interval runs. Configuration settings:
+"Unforked chef-client interval runs are disabled in Chef 12.
+Configuration settings:
   splay     = 600 seconds
 Enable chef-client interval runs by setting `:client_fork = true` in your config file or adding `--fork` to your command line options."
         )
