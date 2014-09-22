@@ -301,18 +301,11 @@ class Chef
 
        # Deleting attributes
        def rm(*args)
-         ret = []
-         ret << rm_default(*args)
-         ret << rm_normal(*args)
-         ret << rm_override(*args)
-         ret.compact!
-         unless ret.empty?
-           ret.inject(Mash.new) do |merged, mash|
-             Chef::Mixin::DeepMerge.hash_only_merge(merged, mash)
-           end
-         else
-           nil
-         end
+         ret = args.inject(merge_overrides) { |attr, arg| attr.nil? ? nil : attr[arg] }
+         rm_default(*args)
+         rm_normal(*args)
+         rm_override(*args)
+         ret
        end
 
        def remove_from_precedence_level(level, *args, key)
