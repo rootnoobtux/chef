@@ -247,13 +247,6 @@ describe Chef::Node do
         node.default.fuu.bahrr.baz = "qux"
         node.fuu.bahrr.baz.should == "qux"
       end
-
-      it "accesses force defaults via default!" do
-        node.default![:foo] = "wet bar"
-        node.default[:foo] = "bar"
-        node[:foo].should == "wet bar"
-      end
-
     end
 
     describe "override attributes" do
@@ -291,12 +284,6 @@ describe Chef::Node do
       it "auto-vivifies attributes created via method syntax" do
         node.override.fuu.bahrr.baz = "qux"
         node.fuu.bahrr.baz.should == "qux"
-      end
-
-      it "sets force_overrides via override!" do
-        node.override![:foo] = "wet bar"
-        node.override[:foo] = "bar"
-        node[:foo].should == "wet bar"
       end
     end
 
