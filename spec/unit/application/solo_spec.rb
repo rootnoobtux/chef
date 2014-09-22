@@ -36,6 +36,61 @@ describe Chef::Application::Solo do
       Chef::Config[:solo].should be_true
     end
 
+    describe "when configured to not fork the client process" do
+      before do
+        Chef::Config[:client_fork] = false
+        Chef::Config[:daemonize] = false
+        Chef::Config[:interval] = nil
+        Chef::Config[:splay] = nil
+      end
+
+      context "when daemonize is set" do
+        before do
+          Chef::Config[:daemonize] = true
+          Chef::Platform.stub(:windows?).and_return(true)
+        end
+
+        it "should terminate with message" do
+          Chef::Application.should_receive(:fatal!).with(
+"Unable to execute unforked chef-client interval runs. Configuration settings:
+  daemonize = true
+Enable chef-client interval runs by setting `:client_fork = true` in your config file or adding `--fork` to your command line options."
+          )
+          @app.reconfigure
+        end
+      end
+
+      context "when interval is given" do
+        before do
+          Chef::Config[:interval] = 600
+        end
+
+        it "should terminate with message" do
+          Chef::Application.should_receive(:fatal!).with(
+"Unable to execute unforked chef-client interval runs. Configuration settings:
+  interval  = 600 seconds
+Enable chef-client interval runs by setting `:client_fork = true` in your config file or adding `--fork` to your command line options."
+          )
+          @app.reconfigure
+        end
+      end
+
+      context "when splay is given" do
+        before do
+          Chef::Config[:splay] = 600
+        end
+
+        it "should terminate with message" do
+          Chef::Application.should_receive(:fatal!).with(
+"Unable to execute unforked chef-client interval runs. Configuration settings:
+  splay     = 600 seconds
+Enable chef-client interval runs by setting `:client_fork = true` in your config file or adding `--fork` to your command line options."
+          )
+          @app.reconfigure
+        end
+      end
+    end
+
     describe "when in daemonized mode and no interval has been set" do
       before do
         Chef::Config[:daemonize] = true
@@ -142,4 +197,3 @@ describe Chef::Application::Solo do
   end
 
 end
-

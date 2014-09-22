@@ -259,6 +259,13 @@ class Chef::Application::Client < Chef::Application
     Chef::Config.chef_zero.host = config[:chef_zero_host] if config[:chef_zero_host]
     Chef::Config.chef_zero.port = config[:chef_zero_port] if config[:chef_zero_port]
 
+    if Chef::Config[:client_fork] == false # --no-fork
+      # We don't want to run daemonized or interval runs without forking
+      if Chef::Config[:daemonize] || Chef::Config[:interval] || Chef::Config[:splay]
+        Chef::Application.fatal!(unforked_interval_error_message) unless Chef::Config[:once]
+      end
+    end
+
     if Chef::Config[:daemonize]
       Chef::Config[:interval] ||= 1800
     end
@@ -372,5 +379,13 @@ class Chef::Application::Client < Chef::Application
   def client_sleep(sec)
     IO.select([ SELF_PIPE[0] ], nil, nil, sec) or return
     SELF_PIPE[0].getc.chr
+  end
+
+  def unforked_interval_error_message
+    "Unable to execute unforked chef-client interval runs. Configuration settings:" +
+    "#{"\n  daemonize = #{Chef::Config[:daemonize]}" if Chef::Platform.windows?}" +
+    "#{"\n  interval  = #{Chef::Config[:interval]} seconds" if Chef::Config[:interval]}" +
+    "#{"\n  splay     = #{Chef::Config[:splay]} seconds" if Chef::Config[:splay]}" +
+    "\nEnable chef-client interval runs by setting `:client_fork = true` in your config file or adding `--fork` to your command line options."
   end
 end
