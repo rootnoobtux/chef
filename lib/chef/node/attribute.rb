@@ -299,7 +299,11 @@ class Chef
          @automatic = VividMash.new(self, new_data)
        end
 
+       #
        # Deleting attributes
+       #
+
+       # clears attributes from all precedence levels
        def rm(*args)
          ret = args.inject(merge_overrides) { |attr, arg| attr.nil? ? nil : attr[arg] }
          rm_default(*args)
@@ -308,6 +312,7 @@ class Chef
          ret
        end
 
+       # does <level>['foo']['bar'].delete('baz')
        def remove_from_precedence_level(level, *args, key)
          reset
          multimash = args.inject(level) { |attr, arg| attr.nil? ? nil : attr[arg] }
@@ -316,17 +321,23 @@ class Chef
 
        private :remove_from_precedence_level
 
-       # force_default!['foo']['bar'].delete('baz')
+       # clears attributes from all default precedence levels
+       #
+       # equivalent to: force_default!['foo']['bar'].delete('baz')
        def rm_default(*args)
          remove_from_precedence_level(force_default!, *args)
        end
 
-       # normal!['foo']['bar'].delete('baz')
+       # clears attributes from normal precedence
+       #
+       # equivalent to: normal!['foo']['bar'].delete('baz')
        def rm_normal(*args)
          remove_from_precedence_level(normal!, *args)
        end
 
-       # force_override!['foo']['bar'].delete('baz')
+       # clears attributes from all override precedence levels
+       #
+       # equivalent to: force_override!['foo']['bar'].delete('baz')
        def rm_override(*args)
          remove_from_precedence_level(force_override!, *args)
        end
@@ -363,26 +374,38 @@ class Chef
          end
        end
 
-       # Replacing attributes
+       #
+       # Replacing attributes without merging
+       #
+
+       # sets default attributes without merging
        def default!
          MultiMash.new(@default)
        end
 
+       # sets normal attributes without merging
        def normal!
          MultiMash.new(@normal)
        end
 
+       # sets override attributes without merging
        def override!
          MultiMash.new(@override)
        end
 
+       # clears from all default precedence levels and then sets force_default
        def force_default!
          MultiMash.new(@default, @env_default, @role_default, @force_default)
        end
 
+       # clears from all override precedence levels and then sets force_override
        def force_override!
          MultiMash.new(@override, @env_override, @role_override, @force_override)
        end
+
+       #
+       # Accessing merged attributes
+       #
 
        def merged_attributes
          @merged_attributes ||= begin
