@@ -301,43 +301,39 @@ class Chef
 
        # Deleting attributes
        def rm(*args)
-         ret = args.inject(merged_attributes) { |attr, arg| attr.nil? ? nil : attr[arg] }
-         rm_default(*args)
-         rm_normal(*args)
-         rm_override(*args)
-         ret
+         ret = []
+         ret << rm_default(*args)
+         ret << rm_normal(*args)
+         ret << rm_override(*args)
+         ret.compact!
+         unless ret.empty?
+           ret.inject(Mash.new) do |merged, mash|
+             Chef::Mixin::DeepMerge.hash_only_merge(merged, mash)
+           end
+         else
+           nil
+         end
        end
 
+       def remove_from_precedence_level(level, *args, key)
+         reset
+         multimash = args.inject(level) { |attr, arg| attr.nil? ? nil : attr[arg] }
+         multimash.nil? ? nil : multimash.delete(key)
+       end
+
+       # force_default!['foo']['bar'].delete('baz')
        def rm_default(*args)
-         ret = args.inject(merge_defaults) { |attr, arg| attr.nil? ? nil : attr[arg] }
-         delete_thing(@default, *args)
-         delete_thing(@env_default, *args)
-         delete_thing(@role_default, *args)
-         delete_thing(@force_default, *args)
-         reset
-         ret
+         remove_from_precedence_level(force_default!, *args)
        end
 
-       def delete_thing(thing, *args)
-         key = args.pop
-         mash = args.inject(thing) { |attr, arg| attr.nil? ? nil : attr[arg] }
-         mash.nil? ? nil : mash.delete(key)
-       end
-
+       # normal!['foo']['bar'].delete('baz')
        def rm_normal(*args)
-         ret = delete_thing(@normal, *args)
-         reset
-         ret
+         remove_from_precedence_level(normal!, *args)
        end
 
+       # force_override!['foo']['bar'].delete('baz')
        def rm_override(*args)
-         ret = args.inject(merge_overrides) { |attr, arg| attr.nil? ? nil : attr[arg] }
-         delete_thing(@override, *args)
-         delete_thing(@env_override, *args)
-         delete_thing(@role_override, *args)
-         delete_thing(@force_override, *args)
-         reset
-         ret
+         remove_from_precedence_level(force_override!, *args)
        end
 
        class MultiMash
@@ -356,14 +352,19 @@ class Chef
          end
 
          def []=(key, value)
+           ret = delete(key)
+           mashes.last[key] = value
+           ret
+         end
+
+         def delete(key)
            ret = mashes.inject(Mash.new) do |merged, mash|
              Chef::Mixin::DeepMerge.merge(merged, mash)
            end
            mashes.each do |mash|
              mash.delete(key)
            end
-           mashes[0][key] = value
-           ret
+           ret[key]
          end
        end
 
@@ -381,11 +382,11 @@ class Chef
        end
 
        def force_default!
-         MultiMash.new(@force_default, @default, @env_default, @role_default)
+         MultiMash.new(@default, @env_default, @role_default, @force_default)
        end
 
        def force_override!
-         MultiMash.new(@force_override, @override, @env_override, @role_override)
+         MultiMash.new(@override, @env_override, @role_override, @force_override)
        end
 
        def merged_attributes
