@@ -42,6 +42,8 @@ class Chef
     extend Forwardable
 
     def_delegators :attributes, :keys, :each_key, :each_value, :key?, :has_key?
+    def_delegators :attributes, :rm, :rm_default, :rm_normal, :rm_override
+    def_delegators :attributes, :default!, :normal!, :override!, :force_default!, :force_override!
 
     attr_accessor :recipe_list, :run_state, :override_runlist
 
@@ -197,44 +199,6 @@ class Chef
 
     def automatic_attrs=(new_values)
       attributes.automatic = new_values
-    end
-
-    # Removing attributes
-    def rm(*args)
-      attributes.rm(*args)
-    end
-
-    def rm_default(*args)
-      attributes.rm_default(*args)
-    end
-
-    def rm_normal(*args)
-      attributes.rm_normal(*args)
-    end
-
-    def rm_override(*args)
-      attributes.rm_override(*args)
-    end
-
-    # Replacing attributes
-    def default!
-      attributes.default!
-    end
-
-    def normal!
-      attributes.normal!
-    end
-
-    def override!
-      attributes.override!
-    end
-
-    def force_default!
-      attributes.force_default!
-    end
-
-    def force_override!
-      attributes.force_override!
     end
 
     # Return true if this Node has a given attribute, false if not.  Takes either a symbol or
