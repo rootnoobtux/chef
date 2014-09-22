@@ -356,42 +356,29 @@ class Chef
          end
 
          def []=(key, value)
+           ret = mashes.inject(Mash.new) do |merged, mash|
+             Chef::Mixin::DeepMerge.merge(merged, mash)
+           end
            mashes.each do |mash|
              mash.delete(key)
            end
            mashes[0][key] = value
-           # FIXME: retval
+           ret
          end
        end
 
        # Replacing attributes
        def default!
-         @default
+         MultiMash.new(@default)
        end
 
        def normal!
-         @normal
+         MultiMash.new(@normal)
        end
 
        def override!
-         @override
+         MultiMash.new(@override)
        end
-
-#       def force_default!
-#         @force_default
-#       end
-#
-#       def force_override!
-#         @force_override
-#       end
-#
-#       def really_default!
-#         MultiMash.new(@default, @force_default, @env_default, @role_default)
-#       end
-#
-#       def really_override!
-#         MultiMash.new(@override, @force_override, @env_override, @role_override)
-#       end
 
        def force_default!
          MultiMash.new(@force_default, @default, @env_default, @role_default)

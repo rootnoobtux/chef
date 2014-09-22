@@ -229,22 +229,6 @@ class Chef
       attributes.override!
     end
 
-#    def force_default!
-#      attributes.replace_force_default
-#    end
-#
-#    def force_override!
-#      attributes.force_override
-#    end
-#
-#    def really_default!
-#      attributes.really_default!
-#    end
-#
-#    def really_override!
-#      attributes.really_override!
-#    end
-
     def force_default!
       attributes.force_default!
     end
