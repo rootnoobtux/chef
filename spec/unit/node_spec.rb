@@ -371,7 +371,7 @@ describe Chef::Node do
         end
 
         it "does not have a horrible error message when mistaking arrays for hashes" do
-          expect( node.rm("mysql", "server", "port") ).to eql(nil)
+          expect { node.rm("mysql", "server", "port") }.to raise_error(TypeError, "Wrong type in index of attribute (did you use a Hash index on an Array?)")
         end
       end
     end

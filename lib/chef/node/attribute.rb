@@ -306,7 +306,17 @@ class Chef
        # clears attributes from all precedence levels
        def rm(*args)
          # just easier to compute our retval, rather than collect+merge sub-retvals
-         ret = args.inject(merge_overrides) { |attr, arg| attr.nil? ? nil : attr[arg] }
+         ret = args.inject(merged_attributes) do |attr, arg|
+           if attr.nil? || !attr.respond_to?(:[])
+             nil
+           else
+             begin
+               attr[arg]
+             rescue TypeError
+               raise TypeError, "Wrong type in index of attribute (did you use a Hash index on an Array?)"
+             end
+           end
+         end
          rm_default(*args)
          rm_normal(*args)
          rm_override(*args)
