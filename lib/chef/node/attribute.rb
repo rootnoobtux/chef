@@ -315,7 +315,6 @@ class Chef
 
        # does <level>['foo']['bar'].delete('baz')
        def remove_from_precedence_level(level, *args, key)
-         reset
          multimash = level.element(*args)
          multimash.nil? ? nil : multimash.delete(key)
        end
