@@ -316,6 +316,24 @@ describe Chef::Node do
         end
       end
 
+      context "when trying to delete through a thing that isn't an array-like or hash-like object" do
+        before do
+          node.default["mysql"] = true
+        end
+
+        it "returns nil when you're two levels deeper" do
+          expect( node.rm("mysql", "server", "port") ).to eql(nil)
+        end
+
+        it "returns nil when you're one level deeper" do
+          expect( node.rm("mysql", "server") ).to eql(nil)
+        end
+
+        it "correctly deletes at the top level" do
+          expect( node.rm("mysql") ).to eql(true)
+        end
+      end
+
       context "with array indexes" do
         before do
           node.role_default["mysql"]["server"][0]["port"] = 1234
@@ -351,6 +369,10 @@ describe Chef::Node do
           expect( node["mysql"]["server"][0]["port"] ).to be_nil
           expect( node["mysql"]["server"][1]["port"] ).to eql(3456)
         end
+
+        it "does not have a horrible error message when mistaking arrays for hashes" do
+          expect( node.rm("mysql", "server", "port") ).to eql(nil)
+        end
       end
     end
 
@@ -380,6 +402,24 @@ describe Chef::Node do
         it "returns an empty hash after the last key is deleted" do
           expect( node.rm_default("mysql", "server", "port") ).to eql(3456)
           expect( node["mysql"]["server"] ).to eql({})
+        end
+      end
+
+      context "when trying to delete through a thing that isn't an array-like or hash-like object" do
+        before do
+          node.default["mysql"] = true
+        end
+
+        it "returns nil when you're two levels deeper" do
+          expect( node.rm_default("mysql", "server", "port") ).to eql(nil)
+        end
+
+        it "returns nil when you're one level deeper" do
+          expect( node.rm_default("mysql", "server") ).to eql(nil)
+        end
+
+        it "correctly deletes at the top level" do
+          expect( node.rm_default("mysql") ).to eql(true)
         end
       end
 

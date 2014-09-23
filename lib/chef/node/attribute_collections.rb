@@ -234,7 +234,7 @@ class Chef
           unless mash.nil?
             if mash.respond_to?(:has_key?)
               new_mashes.push(mash[key]) if mash.has_key?(key)
-            else
+            elsif mash.respond_to?(:[])
               new_mashes.push(mash[key]) unless mash[key].nil?
             end
           end
@@ -264,7 +264,7 @@ class Chef
           Chef::Mixin::DeepMerge.merge(merged, mash)
         end
         mashes.each do |mash|
-          mash.delete(key)
+          mash.delete(key) if mash.respond_to?(:delete)
         end
         ret[key]
       end
