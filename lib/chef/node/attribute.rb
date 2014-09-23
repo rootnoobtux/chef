@@ -316,7 +316,7 @@ class Chef
        # does <level>['foo']['bar'].delete('baz')
        def remove_from_precedence_level(level, *args, key)
          reset
-         multimash = args.inject(level) { |attr, arg| attr.nil? ? nil : attr[arg] }
+         multimash = level.element(*args)
          multimash.nil? ? nil : multimash.delete(key)
        end
 
@@ -362,6 +362,12 @@ class Chef
            ret = delete(key)
            mashes.last[key] = value
            ret
+         end
+
+         # mash.element('foo', 'bar') is the same as mash['foo']['bar']
+         def element(key, *subkeys)
+           submash = self[key]
+           subkeys.empty? ? submash : submash.element(*subkeys)
          end
 
          def delete(key)
