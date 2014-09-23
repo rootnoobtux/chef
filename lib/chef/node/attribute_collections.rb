@@ -223,7 +223,7 @@ class Chef
 
       # Initialize with an array of mashes.  For the delete return value to work
       # properly the mashes must come from the same attribute level (i.e. all
-      # override or all default, but not a mix of both).
+      # override orr all default, but not a mix of both).
       def initialize(*mashes)
         @mashes = mashes
       end
@@ -231,7 +231,13 @@ class Chef
       def [](key)
         new_mashes = []
         mashes.each do |mash|
-          new_mashes.push(mash[key]) if mash.has_key?(key)
+          unless mash.nil?
+            if mash.respond_to?(:has_key?)
+              new_mashes.push(mash[key]) if mash.has_key?(key)
+            else
+              new_mashes.push(mash[key]) unless mash[key].nil?
+            end
+          end
         end
         MultiMash.new(*new_mashes)
       end
@@ -243,7 +249,8 @@ class Chef
       end
 
       # mash.element('foo', 'bar') is the same as mash['foo']['bar']
-      def element(key, *subkeys)
+      def element(key = nil, *subkeys)
+        return self if key.nil?
         submash = self[key]
         subkeys.empty? ? submash : submash.element(*subkeys)
       end

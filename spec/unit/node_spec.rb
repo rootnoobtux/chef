@@ -288,26 +288,69 @@ describe Chef::Node do
     end
 
     describe "globally deleting attributes" do
-      before do
-        node.role_default["mysql"]["server"]["port"] = 1234
-        node.normal["mysql"]["server"]["port"] = 2345
-        node.override["mysql"]["server"]["port"] = 3456
+      context "with hash values" do
+        before do
+          node.role_default["mysql"]["server"]["port"] = 1234
+          node.normal["mysql"]["server"]["port"] = 2345
+          node.override["mysql"]["server"]["port"] = 3456
+        end
+
+        it "deletes all the values and returns the value with the highest precidence" do
+          expect( node.rm("mysql", "server", "port") ).to eql(3456)
+          expect( node["mysql"]["server"]["port"] ).to be_nil
+          expect( node["mysql"]["server"] ).to eql({})
+        end
+
+        it "deletes nested things correctly" do
+          node.default["mysql"]["client"]["client_setting"] = "foo"
+          expect( node.rm("mysql", "server") ).to eql( {"port" => 3456} )
+          expect( node["mysql"] ).to eql( { "client" => { "client_setting" => "foo" } } )
+        end
+
+        it "returns nil if the node attribute does not exist" do
+          expect( node.rm("no", "such", "thing") ).to be_nil
+        end
+
+        it "can delete the entire tree" do
+          expect( node.rm("mysql") ).to eql({"server"=>{"port"=>3456}})
+        end
       end
 
-      it "deletes all the values and returns the value with the highest precidence" do
-        expect( node.rm("mysql", "server", "port") ).to eql(3456)
-        expect( node["mysql"]["server"]["port"] ).to be_nil
-        expect( node["mysql"]["server"] ).to eql({})
+      context "with array indexes" do
+        before do
+          node.role_default["mysql"]["server"][0]["port"] = 1234
+          node.normal["mysql"]["server"][0]["port"] = 2345
+          node.override["mysql"]["server"][0]["port"] = 3456
+          node.override["mysql"]["server"][1]["port"] = 3456
+        end
+
+        it "deletes the array element" do
+          expect( node.rm("mysql", "server", 0, "port") ).to eql(3456)
+          expect( node["mysql"]["server"][0]["port"] ).to be_nil
+          expect( node["mysql"]["server"][1]["port"] ).to eql(3456)
+        end
       end
 
-      it "deletes nested things correctly" do
-        node.default["mysql"]["client"]["client_setting"] = "foo"
-        expect( node.rm("mysql", "server") ).to eql( {"port" => 3456} )
-        expect( node["mysql"] ).to eql( { "client" => { "client_setting" => "foo" } } )
-      end
+      context "with real arrays" do
+        before do
+          node.role_default["mysql"]["server"] = [ {
+            "port" => 1234,
+          } ]
+          node.normal["mysql"]["server"][0]["port"] = [ {
+            "port" => 2345,
+          } ]
+          node.override["mysql"]["server"] = [ {
+            "port" => 3456,
+          },{
+            "port" => 3456,
+          } ]
+        end
 
-      it "returns nil if the node attribute does not exist" do
-        expect( node.rm("no", "such", "thing") ).to be_nil
+        it "deletes the array element" do
+          expect( node.rm("mysql", "server", 0, "port") ).to eql(3456)
+          expect( node["mysql"]["server"][0]["port"] ).to be_nil
+          expect( node["mysql"]["server"][1]["port"] ).to eql(3456)
+        end
       end
     end
 
