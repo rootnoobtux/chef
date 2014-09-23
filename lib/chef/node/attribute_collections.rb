@@ -209,5 +209,59 @@ class Chef
 
     end
 
+    # == MultiMash
+    # This is a Hash-like object that contains multiple VividMashes in it.  Its
+    # purpose is so that the user can descend into the mash and delete a subtree
+    # from all of the Mash objects (used to delete all values in a subtree from
+    # default, force_default, role_default and env_default at the same time).  The
+    # assignment operator strictly does assignment (does no merging) and works
+    # by deleting the subtree and then assigning to the last mash which passed in
+    # the initializer.
+    #
+    class MultiMash
+      attr_reader :mashes
+
+      # Initialize with an array of mashes.  For the delete return value to work
+      # properly the mashes must come from the same attribute level (i.e. all
+      # override or all default, but not a mix of both).
+      def initialize(*mashes)
+        @mashes = mashes
+      end
+
+      def [](key)
+        new_mashes = []
+        mashes.each do |mash|
+          new_mashes.push(mash[key]) if mash.has_key?(key)
+        end
+        MultiMash.new(*new_mashes)
+      end
+
+      def []=(key, value)
+        ret = delete(key)
+        mashes.last[key] = value
+        ret
+      end
+
+      # mash.element('foo', 'bar') is the same as mash['foo']['bar']
+      def element(key, *subkeys)
+        submash = self[key]
+        subkeys.empty? ? submash : submash.element(*subkeys)
+      end
+
+      def delete(key)
+        # the return value is a deep merge which is correct semantics when
+        # merging between attributes on the same level (this would be incorrect
+        # if passed both override and default attributes which would need hash_only
+        # merging).
+        ret = mashes.inject(Mash.new) do |merged, mash|
+          Chef::Mixin::DeepMerge.merge(merged, mash)
+        end
+        mashes.each do |mash|
+          mash.delete(key)
+        end
+        ret[key]
+      end
+    end
+
   end
 end

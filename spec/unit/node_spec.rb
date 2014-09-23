@@ -287,8 +287,6 @@ describe Chef::Node do
       end
     end
 
-context "chef-12 attribute changes DELETEME" do
-
     describe "globally deleting attributes" do
       before do
         node.role_default["mysql"]["server"]["port"] = 1234
@@ -506,8 +504,6 @@ context "chef-12 attribute changes DELETEME" do
         })
       end
     end
-
-end
 
     it "should raise an ArgumentError if you ask for an attribute that doesn't exist via method_missing" do
       lambda { node.sunshine }.should raise_error(NoMethodError)

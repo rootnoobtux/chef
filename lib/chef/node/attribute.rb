@@ -343,44 +343,6 @@ class Chef
          remove_from_precedence_level(force_override!, *args)
        end
 
-       class MultiMash
-         attr_reader :mashes
-
-         def initialize(*mashes)
-           @mashes = mashes
-         end
-
-         def [](key)
-           new_mashes = []
-           mashes.each do |mash|
-             new_mashes.push(mash[key]) if mash.has_key?(key)
-           end
-           MultiMash.new(*new_mashes)
-         end
-
-         def []=(key, value)
-           ret = delete(key)
-           mashes.last[key] = value
-           ret
-         end
-
-         # mash.element('foo', 'bar') is the same as mash['foo']['bar']
-         def element(key, *subkeys)
-           submash = self[key]
-           subkeys.empty? ? submash : submash.element(*subkeys)
-         end
-
-         def delete(key)
-           ret = mashes.inject(Mash.new) do |merged, mash|
-             Chef::Mixin::DeepMerge.merge(merged, mash)
-           end
-           mashes.each do |mash|
-             mash.delete(key)
-           end
-           ret[key]
-         end
-       end
-
        #
        # Replacing attributes without merging
        #
