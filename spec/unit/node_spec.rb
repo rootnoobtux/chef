@@ -586,6 +586,26 @@ describe Chef::Node do
           "data_dir" => "/my_raid_volume/lib/mysql",
         })
       end
+
+      it "when overwriting a non-hash/array" do
+        node.force_override["mysql"] = true
+        node.force_override!["mysql"]["server"] = {
+          "data_dir" => "/my_raid_volume/lib/mysql",
+        }
+        expect( node["mysql"]["server"] ).to eql({
+          "data_dir" => "/my_raid_volume/lib/mysql",
+        })
+      end
+
+      it "when overwriting an array with a hash" do
+        node.force_override["mysql"][0] = true
+        node.force_override!["mysql"]["server"] = {
+          "data_dir" => "/my_raid_volume/lib/mysql",
+        }
+        expect( node["mysql"]["server"] ).to eql({
+          "data_dir" => "/my_raid_volume/lib/mysql",
+        })
+      end
     end
 
     it "should raise an ArgumentError if you ask for an attribute that doesn't exist via method_missing" do

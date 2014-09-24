@@ -244,6 +244,10 @@ class Chef
 
       def []=(key, value)
         ret = delete(key)
+        unless mashes.last.respond_to?(:[]=)
+          mashes.pop
+          mashes << {}
+        end
         mashes.last[key] = value
         ret
       end
