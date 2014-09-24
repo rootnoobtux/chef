@@ -45,7 +45,7 @@ describe Chef::Knife::DataBagFromFile do
         "greeting" => "hello",
         "nested" => { "a1" => [1, 2, 3], "a2" => { "b1" => true }}
     }
-    @db_file.write(@plain_data.to_json)
+    @db_file.write(Chef::JSONCompat.to_json(@plain_data))
     @db_file.flush
     @knife.instance_variable_set(:@name_args, ['bag_name', @db_file.path])
   end
