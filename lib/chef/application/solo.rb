@@ -220,35 +220,7 @@ class Chef::Application::Solo < Chef::Application
       Chef::Daemon.daemonize("chef-client")
     end
 
-    loop do
-      begin
-        if Chef::Config[:splay]
-          splay = rand Chef::Config[:splay]
-          Chef::Log.debug("Splay sleep #{splay} seconds")
-          sleep splay
-        end
-
-        run_chef_client
-        if Chef::Config[:interval]
-          Chef::Log.debug("Sleeping for #{Chef::Config[:interval]} seconds")
-          sleep Chef::Config[:interval]
-        else
-          Chef::Application.exit! "Exiting", 0
-        end
-      rescue SystemExit => e
-        raise
-      rescue Exception => e
-        if Chef::Config[:interval]
-          Chef::Log.error("#{e.class}: #{e}")
-          Chef::Log.debug("#{e.class}: #{e}\n#{e.backtrace.join("\n")}")
-          Chef::Log.fatal("Sleeping for #{Chef::Config[:interval]} seconds before trying again")
-          sleep Chef::Config[:interval]
-          retry
-        else
-          Chef::Application.fatal!("#{e.class}: #{e.message}", 1)
-        end
-      end
-    end
+    run_chef_client
   end
 
   private

@@ -31,6 +31,9 @@ require 'rbconfig'
 class Chef::Application
   include Mixlib::CLI
 
+  IMMEDIATE_RUN_SIGNAL = "1".freeze
+  GRACEFUL_EXIT_SIGNAL = "2".freeze
+
   def initialize
     super
 
@@ -192,22 +195,15 @@ class Chef::Application
   end
 
   # Initializes Chef::Client instance and runs it
-  def run_chef_client(specific_recipes = [])
-    Chef::LocalMode.with_server_connectivity do
-      override_runlist = config[:override_runlist]
-      if specific_recipes.size > 0
-        override_runlist ||= []
+  def run_chef_client(specific_recipes = [], use_signal = false)
+    if client_can_fork?
+      if Chef::Config[:once]
+        do_forked_run(specific_recipes)
+      else
+        do_delayed_or_interval_run(specific_recipes, use_signal)
       end
-      @chef_client = Chef::Client.new(
-        @chef_client_json,
-        :override_runlist => config[:override_runlist],
-        :specific_recipes => specific_recipes,
-        :runlist => config[:runlist]
-      )
-      @chef_client_json = nil
-
-      @chef_client.run
-      @chef_client = nil
+    else
+      do_run(specific_recipes)
     end
   end
 
@@ -298,6 +294,124 @@ class Chef::Application
   # This is a hook for testing
   def env
     ENV
+  end
+
+  # win32-process gem exposes some form of :fork for Process
+  # class. So we are seperately ensuring that the platform we're
+  # running on is not windows before forking.
+  def client_can_fork?
+    Chef::Config[:client_fork] && Process.respond_to?(:fork) && !Chef::Platform.windows?
+  end
+
+  def do_run(specific_recipes)
+    Chef::LocalMode.with_server_connectivity do
+      override_runlist = config[:override_runlist]
+      if specific_recipes.size > 0
+        override_runlist ||= []
+      end
+      @chef_client = Chef::Client.new(
+        @chef_client_json,
+        :override_runlist => config[:override_runlist],
+        :specific_recipes => specific_recipes,
+        :runlist => config[:runlist]
+      )
+      @chef_client_json = nil
+
+      @chef_client.run
+      @chef_client = nil
+    end
+  end
+
+  def do_forked_run(specific_recipes)
+    Chef::Log.info "Forking chef instance to converge..."
+    pid = fork do
+      [:INT, :TERM].each {|s| trap(s, "EXIT") }
+      client_solo = Chef::Config[:solo] ? "chef-solo" : "chef-client"
+      $0 = "#{client_solo} worker: ppid=#{Process.ppid};start=#{Time.new.strftime("%R:%S")};"
+      begin
+        Chef::Log.debug "Forked instance now converging"
+        do_run(specific_recipes)
+      rescue Exception => e
+        Chef::Log.error(e.to_s)
+        exit 1
+      else
+        exit 0
+      end
+    end
+    Chef::Log.debug "Fork successful. Waiting for new chef pid: #{pid}"
+    result = Process.waitpid2(pid)
+    handle_child_exit(result)
+    Chef::Log.debug "Forked instance successfully reaped (pid: #{pid})"
+  end
+
+  def handle_child_exit(pid_and_status)
+    status = pid_and_status[1]
+    return true if status.success?
+    message = if status.signaled?
+      "Chef run process terminated by signal #{status.termsig} (#{Signal.list.invert[status.termsig]})"
+    else
+      "Chef run process exited unsuccessfully (exit code #{status.exitstatus})"
+    end
+    raise Exceptions::ChildConvergeError, message
+  end
+
+  def do_delayed_or_interval_run(specific_recipes, use_signal)
+    signal = nil
+    loop do
+      begin
+        Chef::Application.exit!("Exiting", 0) if use_signal && signal == GRACEFUL_EXIT_SIGNAL
+
+        if Chef::Client[:splay]
+          break if use_signal && signal == IMMEDIATE_RUN_SIGNAL
+          splay = rand Chef::Config[:splay]
+          Chef::Log.debug("Splay sleep #{splay} seconds")
+          sleep splay
+        end
+
+        signal = nil
+        do_forked_run(specific_recipes)
+
+        if interval = Chef::Config[:interval]
+          Chef::Log.debug("Sleeping for #{interval} seconds")
+          if use_signal
+            signal = interval_sleep
+          else
+            sleep interval
+          end
+        else
+          Chef::Application.exit!("Exiting", 0)
+        end
+      rescue SystemExit
+        raise
+      rescue Exception => e
+        if interval = Chef::Config[:interval]
+          Chef::Log.error("#{e.class}: #{e}")
+          Chef::Log.error("Sleeping for #{Chef::Config[:interval]} seconds before trying again")
+          if use_signal
+            signal = interval_sleep
+          else
+            sleep interval
+          end
+          retry
+        else
+          Chef::Application.fatal!("#{e.class}: #{e.message}", 1)
+        end
+      end
+    end
+  end
+
+  def interval_sleep
+    unless SELF_PIPE.empty?
+      client_sleep Chef::Config[:interval]
+    else
+      # Windows
+      sleep Chef::Config[:interval]
+    end
+  end
+
+  def client_sleep(sec)
+    IO.select([ SELF_PIPE[0] ], nil, nil, sec) or return
+    SELF_PIPE[0].getc.chr
   end
 
   class << self

@@ -238,9 +238,6 @@ class Chef::Application::Client < Chef::Application
       :boolean      => true
   end
 
-  IMMEDIATE_RUN_SIGNAL = "1".freeze
-  GRACEFUL_EXIT_SIGNAL = "2".freeze
-
   attr_reader :chef_client_json
 
   # Reconfigure the chef client
@@ -329,57 +326,10 @@ class Chef::Application::Client < Chef::Application
       Chef::Daemon.daemonize("chef-client")
     end
 
-    signal = nil
-
-    loop do
-      begin
-        Chef::Application.exit!("Exiting", 0) if signal == GRACEFUL_EXIT_SIGNAL
-
-        if Chef::Config[:splay] and signal != IMMEDIATE_RUN_SIGNAL
-          splay = rand Chef::Config[:splay]
-          Chef::Log.debug("Splay sleep #{splay} seconds")
-          sleep splay
-        end
-
-        signal = nil
-        run_chef_client(Chef::Config[:specific_recipes])
-
-        if Chef::Config[:interval]
-          Chef::Log.debug("Sleeping for #{Chef::Config[:interval]} seconds")
-          signal = interval_sleep
-        else
-          Chef::Application.exit! "Exiting", 0
-        end
-      rescue SystemExit => e
-        raise
-      rescue Exception => e
-        if Chef::Config[:interval]
-          Chef::Log.error("#{e.class}: #{e}")
-          Chef::Log.error("Sleeping for #{Chef::Config[:interval]} seconds before trying again")
-          signal = interval_sleep
-          retry
-        else
-          Chef::Application.fatal!("#{e.class}: #{e.message}", 1)
-        end
-      end
-    end
+    run_chef_client(Chef::Config[:specific_recipes], true)
   end
 
   private
-
-  def interval_sleep
-    unless SELF_PIPE.empty?
-      client_sleep Chef::Config[:interval]
-    else
-      # Windows
-      sleep Chef::Config[:interval]
-    end
-  end
-
-  def client_sleep(sec)
-    IO.select([ SELF_PIPE[0] ], nil, nil, sec) or return
-    SELF_PIPE[0].getc.chr
-  end
 
   def unforked_interval_error_message
     "Unforked chef-client interval runs are disabled in Chef 12." +
