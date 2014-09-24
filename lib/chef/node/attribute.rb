@@ -335,6 +335,7 @@ class Chef
        #
        # equivalent to: force_default!['foo']['bar'].delete('baz')
        def rm_default(*args)
+         reset
          remove_from_precedence_level(force_default!, *args)
        end
 
@@ -342,6 +343,7 @@ class Chef
        #
        # equivalent to: normal!['foo']['bar'].delete('baz')
        def rm_normal(*args)
+         reset
          remove_from_precedence_level(normal!, *args)
        end
 
@@ -349,6 +351,7 @@ class Chef
        #
        # equivalent to: force_override!['foo']['bar'].delete('baz')
        def rm_override(*args)
+         reset
          remove_from_precedence_level(force_override!, *args)
        end
 

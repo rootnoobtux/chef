@@ -231,11 +231,13 @@ class Chef
       def [](key)
         new_mashes = []
         mashes.each do |mash|
-          unless mash.nil?
+          if mash.respond_to?(:[])
             if mash.respond_to?(:has_key?)
-              new_mashes.push(mash[key]) if mash.has_key?(key)
-            elsif mash.respond_to?(:[])
-              new_mashes.push(mash[key]) unless mash[key].nil?
+              if mash.has_key?(key)
+                new_mashes.push(mash[key]) if mash[key].respond_to?(:[])
+              end
+            elsif !mash[key].nil?
+              new_mashes.push(mash[key]) if mash[key].respond_to?(:[])
             end
           end
         end

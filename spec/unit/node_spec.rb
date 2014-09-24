@@ -354,12 +354,10 @@ describe Chef::Node do
           node.role_default["mysql"]["server"] = [ {
             "port" => 1234,
           } ]
-          node.normal["mysql"]["server"][0]["port"] = [ {
+          node.normal["mysql"]["server"] = [ {
             "port" => 2345,
           } ]
           node.override["mysql"]["server"] = [ {
-            "port" => 3456,
-          },{
             "port" => 3456,
           } ]
         end
@@ -367,7 +365,6 @@ describe Chef::Node do
         it "deletes the array element" do
           expect( node.rm("mysql", "server", 0, "port") ).to eql(3456)
           expect( node["mysql"]["server"][0]["port"] ).to be_nil
-          expect( node["mysql"]["server"][1]["port"] ).to eql(3456)
         end
 
         it "does not have a horrible error message when mistaking arrays for hashes" do
@@ -588,10 +585,14 @@ describe Chef::Node do
       end
 
       it "when overwriting a non-hash/array" do
+        node.override["mysql"] = false
         node.force_override["mysql"] = true
+        require 'pp'
+        pp node.attributes.debug_value("mysql")
         node.force_override!["mysql"]["server"] = {
           "data_dir" => "/my_raid_volume/lib/mysql",
         }
+        pp node.attributes.debug_value("mysql")
         expect( node["mysql"]["server"] ).to eql({
           "data_dir" => "/my_raid_volume/lib/mysql",
         })
